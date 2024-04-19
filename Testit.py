@@ -2,8 +2,11 @@
 
 #Import key functions
 import tkinter
-from tkinter import label, entry, button
+
+#Create a title
+Title = tkinter.Tk()
+Title.title("TestIt!")
 
 #New subroutine called 'Welcome'
 def Welcome():
-    txtWelcome_title = label(text = "Welcome to TestIt!")
+    txtWelcome_title = tkinter.label(text = "Welcome to TestIt!")
