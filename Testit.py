@@ -6,4 +6,4 @@ from tkinter import label, entry, button
 
 #New subroutine called 'Welcome'
 def Welcome():
-    txtWelcome_title = label()
+    txtWelcome_title = label(text = "Welcome to TestIt!")
