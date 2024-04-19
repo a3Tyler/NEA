@@ -2,9 +2,10 @@
 
 #Import key functions
 import tkinter
+from tkinter import Tk, Label, Entry, Button
 
 #Create a title
-Title = tkinter.Tk()
+Title = Tk()
 Title.title("TestIt!")
 
 #New subroutine called 'Welcome'
