@@ -6,10 +6,11 @@ from tkinter import Tk, Frame, Label, Entry, Button, CENTER
 def Close():
     exit()
 
-# Subroutine that clears a frame
+# Subroutine that clears the frame
 def Clear():
     for widget in Win.winfo_children():
-        widget.destroy()
+        if widget != btnExit:
+            widget.destroy()
 
 # Creates a window and sets it's title and makes it fullscreen
 Win = Tk()
@@ -18,7 +19,7 @@ Win.attributes('-fullscreen', True)
 
 # Creates a button so that the user can exit the program if desired
 btnExit = Button(background = "red", text = "X", height = 1, width = 3, command = Close)
-btnExit.place(relx = 0.9925, rely = 0.011, anchor = CENTER)
+btnExit.place(relx = 0.99, rely = 0.015, anchor = CENTER)
 
 # # # # # WELCOME SCREEN # # # # #
 def Welcome():
@@ -33,12 +34,12 @@ def Welcome():
     txtWelcome_description = Label(bg = Win.cget("bg"), text = "Test your skills!", font = ("Arial", 16))
     txtWelcome_description.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
-    # Creates a button that goes to the log in screen
-    btnLog_in = Button(width = 15, bg = "#ee5522", activebackground = "#ff7744", text = "Log In", font = ("Calibri", 16), command = LogIn())
+    # Creates a button that goes to the Log In screen
+    btnLog_in = Button(width = 15, bg = "#ee5522", activebackground = "#ff7744", text = "Log In", font = ("Calibri", 16), command = lambda: LogIn())
     btnLog_in.place(relx = 0.3, rely = 0.5, anchor = CENTER)
     
-    # Creates a button that goes to the account creation screen
-    btnAccount_creation = Button(width = 15, bg = "green", activebackground = "light green", text = "Create an Account", font = ("Calibri", 16), command = AccountCreation())
+    # Creates a button that goes to the Account Creation screen
+    btnAccount_creation = Button(width = 15, bg = "green", activebackground = "light green", text = "Create an Account", font = ("Calibri", 16), command = lambda: AccountCreation())
     btnAccount_creation.place(relx = 0.7, rely = 0.5, anchor = CENTER)
     
     # Keeps on displaying the screen unless something happens
@@ -50,6 +51,33 @@ def LogIn():
 
 # # # # # ACCOUNT CREATION SCREEN # # # # #
 def AccountCreation():
+    # Clears the screen
+    Clear()
+
+    # Changes the colour of the background
+    Win.config(bg = "light blue")
+    
+    # Creates a label
+    txtCreation_title = Label(bg = Win.cget("bg"), text = "Create an Account", font = ("Arial", 30))
+    txtCreation_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
+    
+    # Creates a label
+    txtCreation_question = Label(bg = Win.cget("bg"), text = "Teacher or Student?", font = ("Arial", 16))
+    txtCreation_question.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    
+    # Creates a button that sets the account type as "Teacher" and goes to the Account Details screen
+    btnTeacher = Button(width = 15, bg = "dark blue", activebackground = "blue", text = "Teacher", font = ("Calibri", 16), command = lambda: AccountDetails("Teacher"))
+    btnTeacher.place(relx = 0.3, rely = 0.5, anchor = CENTER)
+    
+    # Creates a button that sets the account type as "Student" and goes to the Account Details screen
+    btnStudent = Button(width = 15, bg = "green", activebackground = "light green", text = "Student", font = ("Calibri", 16), command = lambda: AccountDetails("Student"))
+    btnStudent.place(relx = 0.7, rely = 0.5, anchor = CENTER)
+    
+    # Keeps on displaying the screen unless something happens
+    Win.mainloop()
+
+# # # # # ACCOUNT DETAILS SCREEN # # # # #
+def AccountDetails(Type):
     print("Yet to start")
 
 Welcome()
