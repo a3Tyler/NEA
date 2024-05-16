@@ -47,7 +47,43 @@ def Welcome():
 
 # # # # # LOG IN SCREEN # # # # #
 def LogIn():
-    print("Yet to start")
+    # Clears the screen
+    Clear()
+    
+    # Declares important variables
+    email = None
+    username = None
+    password = None
+
+    # Changes the colour of the background
+    Win.config(bg = "light blue")
+    
+    # Creates a label
+    txtLogIn_title = Label(bg = Win.cget("bg"), text = "Welcome Back!", font = ("Arial", 30))
+    txtLogIn_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
+    
+    # Creates a label
+    txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
+    txtLogIn_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the email address
+    etrEmail = Entry(width = 30, bg = "white",  text = "Email", textvariable = email, font = ("Calibri", 16))
+    etrEmail.place(relx = 0.5, rely = 0.4, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the username
+    etrUsername = Entry(width = 30, bg = "white", text = "Student", textvariable = username, font = ("Calibri", 16))
+    etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the password
+    etrPassword = Entry(width = 30, bg = "white", text = "Student", textvariable = password, font = ("Calibri", 16))
+    etrPassword.place(relx = 0.5, rely = 0.6, anchor = CENTER)
+    
+    # Creates a button that sets the account type as "Student" and goes to the Account Details screen
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: LogInCheck(email, username, password))
+    btnSubmit.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    
+    # Keeps on displaying the screen unless something happens
+    Win.mainloop()
 
 # # # # # ACCOUNT CREATION SCREEN # # # # #
 def AccountCreation():
