@@ -3,11 +3,11 @@ import tkinter
 from tkinter import Tk, Frame, Label, Entry, Button, CENTER
 
 # Subroutine that closes the window
-def Close():
+def funClose():
     exit()
 
 # Subroutine that clears the frame
-def Clear():
+def funClear():
     for widget in Win.winfo_children():
         if widget != btnExit:
             widget.destroy()
@@ -18,7 +18,7 @@ Win.title("TestIt!")
 Win.attributes('-fullscreen', True)
 
 # Creates a button so that the user can exit the program if desired
-btnExit = Button(background = "red", text = "X", height = 1, width = 3, command = Close)
+btnExit = Button(background = "red", text = "X", height = 1, width = 3, command = funClose)
 btnExit.place(relx = 0.99, rely = 0.015, anchor = CENTER)
 
 # # # # # WELCOME SCREEN # # # # #
@@ -48,7 +48,7 @@ def Welcome():
 # # # # # LOG IN SCREEN # # # # #
 def LogIn():
     # Clears the screen
-    Clear()
+    funClear()
     
     # Declares important variables
     email = None
@@ -66,29 +66,33 @@ def LogIn():
     txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
     txtLogIn_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
-    # Creates an entry box for the user to enter the email address
+    # Creates a label and an entry box for the user to enter the email address
     etrEmail = Entry(width = 30, bg = "white",  text = "Email", textvariable = email, font = ("Calibri", 16))
     etrEmail.place(relx = 0.5, rely = 0.4, anchor = CENTER)
     
     # Creates an entry box for the user to enter the username
-    etrUsername = Entry(width = 30, bg = "white", text = "Student", textvariable = username, font = ("Calibri", 16))
+    etrUsername = Entry(width = 30, bg = "white", text = "Username", textvariable = username, font = ("Calibri", 16))
     etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
     
     # Creates an entry box for the user to enter the password
-    etrPassword = Entry(width = 30, bg = "white", text = "Student", textvariable = password, font = ("Calibri", 16))
+    etrPassword = Entry(width = 30, bg = "white", text = "Password", textvariable = password, font = ("Calibri", 16))
     etrPassword.place(relx = 0.5, rely = 0.6, anchor = CENTER)
     
     # Creates a button that sets the account type as "Student" and goes to the Account Details screen
     btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: LogInCheck(email, username, password))
-    btnSubmit.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
     
     # Keeps on displaying the screen unless something happens
     Win.mainloop()
 
+# Subroutine that checks the database to validate the user
+def LogInCheck(email, username, password):
+    print("Yet to start")
+
 # # # # # ACCOUNT CREATION SCREEN # # # # #
 def AccountCreation():
     # Clears the screen
-    Clear()
+    funClear()
 
     # Changes the colour of the background
     Win.config(bg = "light blue")
