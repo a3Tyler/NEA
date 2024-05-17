@@ -1,6 +1,6 @@
 # Import key functions
 import tkinter
-from tkinter import Tk, Frame, Label, Entry, Button, CENTER
+from tkinter import Tk, Frame, Label, Entry, Button, StringVar, CENTER
 
 # Subroutine that closes the window
 def funClose():
@@ -11,6 +11,16 @@ def funClear():
     for widget in Win.winfo_children():
         if widget != btnExit:
             widget.destroy()
+
+# Subroutine that sets the text to default
+def funSetText(widget, text_variable, text):
+    if text_variable.get() == "":
+        widget.insert(0, text)
+
+# Subroutine that clears the text
+def funClearText(widget, text_variable, default_text):
+    if text_variable.get() == default_text:
+        widget.delete(0, "end")
 
 # Creates a window and sets it's title and makes it fullscreen
 Win = Tk()
@@ -23,6 +33,9 @@ btnExit.place(relx = 0.99, rely = 0.015, anchor = CENTER)
 
 # # # # # WELCOME SCREEN # # # # #
 def Welcome():
+    # Clears the screen
+    funClear()
+    
     # Changes the colour of the background
     Win.config(bg = "light blue")
     
@@ -51,9 +64,12 @@ def LogIn():
     funClear()
     
     # Declares important variables
-    email = None
-    username = None
-    password = None
+    email = StringVar()
+    email.set("Enter email")
+    username = StringVar()
+    username.set("Enter username")
+    password = StringVar()
+    password.set("Enter password")
 
     # Changes the colour of the background
     Win.config(bg = "light blue")
@@ -66,21 +82,27 @@ def LogIn():
     txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
     txtLogIn_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
-    # Creates a label and an entry box for the user to enter the email address
-    etrEmail = Entry(width = 30, bg = "white",  text = "Email", textvariable = email, font = ("Calibri", 16))
+    # Creates an entry box for the user to enter the email address
+    etrEmail = Entry(width = 30, bg = "white", textvariable = email, font = ("Calibri", 16))
     etrEmail.place(relx = 0.5, rely = 0.4, anchor = CENTER)
     
     # Creates an entry box for the user to enter the username
-    etrUsername = Entry(width = 30, bg = "white", text = "Username", textvariable = username, font = ("Calibri", 16))
+    etrUsername = Entry(width = 30, bg = "white", textvariable = username, font = ("Calibri", 16))
     etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
     
     # Creates an entry box for the user to enter the password
-    etrPassword = Entry(width = 30, bg = "white", text = "Password", textvariable = password, font = ("Calibri", 16))
+    etrPassword = Entry(width = 30, bg = "white", textvariable = password, show = "*", font = ("Calibri", 16))
     etrPassword.place(relx = 0.5, rely = 0.6, anchor = CENTER)
+    etrPassword.bind('<FocusIn', funSetText(etrPassword, password, "Enter password"))
+    etrPassword.bind('<FocusOut', funClearText(etrPassword, password, "Enter password"))
     
-    # Creates a button that sets the account type as "Student" and goes to the Account Details screen
+    # Creates a button that submits the data
     btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: LogInCheck(email, username, password))
     btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
+    
+    # Creates a button to go back to the prevous screen
+    btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: Welcome())
+    btnGo_back.place(relx = 0.01, rely = 0.95)
     
     # Keeps on displaying the screen unless something happens
     Win.mainloop()
@@ -113,11 +135,70 @@ def AccountCreation():
     btnStudent = Button(width = 15, bg = "green", activebackground = "light green", text = "Student", font = ("Calibri", 16), command = lambda: AccountDetails("Student"))
     btnStudent.place(relx = 0.7, rely = 0.5, anchor = CENTER)
     
+    # Creates a button to go back to the prevous screen
+    btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: Welcome())
+    btnGo_back.place(relx = 0.01, rely = 0.95)
+    
     # Keeps on displaying the screen unless something happens
     Win.mainloop()
 
 # # # # # ACCOUNT DETAILS SCREEN # # # # #
 def AccountDetails(Type):
+    # Clears the screen
+    funClear()
+    
+    # Declares important variables
+    email = None
+    username = None
+    password = None
+    confirm = None
+
+    # Changes the colour of the background
+    if Type == "Teacher":
+        Win.config(bg = "blue")
+    elif Type == "Student":
+        Win.config(bg = "green")
+    else:
+        print("ERROR: No 'Type' for Account")
+        funClose()
+    
+    # Creates a label
+    txtCreation_title = Label(bg = Win.cget("bg"), text = "Create an Account", font = ("Arial", 30))
+    txtCreation_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
+    
+    # Creates a label
+    txtCreation_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
+    txtCreation_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the email address
+    etrEmail = Entry(width = 30, bg = "white",  textvariable = email, font = ("Calibri", 16))
+    etrEmail.place(relx = 0.5, rely = 0.4, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the username
+    etrUsername = Entry(width = 30, bg = "white", textvariable = username, font = ("Calibri", 16))
+    etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the password
+    etrPassword = Entry(width = 30, bg = "white", textvariable = password, font = ("Calibri", 16))
+    etrPassword.place(relx = 0.5, rely = 0.6, anchor = CENTER)
+    
+    # Creates an entry box for the user to re-enter the password
+    etrConfirm = Entry(width = 30, bg = "white", textvariable = confirm, show = "*", font = ("Calibri", 16))
+    etrConfirm.place(relx = 0.5, rely = 0.7, anchor = CENTER)
+    
+    # Creates a button that submits the data
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: SendDetails(email, username, password, confirm))
+    btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
+    
+    # Creates a button to go back to the prevous screen
+    btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: AccountCreation())
+    btnGo_back.place(relx = 0.01, rely = 0.95)
+    
+    # Keeps on displaying the screen unless something happens
+    Win.mainloop()
+
+# Subroutine that sends the data to the database
+def SendDetails(email, username, password, confirm):
     print("Yet to start")
 
 Welcome()
