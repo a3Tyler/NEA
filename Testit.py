@@ -13,14 +13,16 @@ def funClear():
             widget.destroy()
 
 # Subroutine that sets the text to default
-def funSetText(widget, text_variable, text):
+def funSetText(widget, text_variable, text, show):
     if text_variable.get() == "":
         widget.insert(0, text)
+        widget.config(show = show)
 
 # Subroutine that clears the text
-def funClearText(widget, text_variable, default_text):
+def funClearText(widget, text_variable, default_text, show):
     if text_variable.get() == default_text:
         widget.delete(0, "end")
+        widget.config(show = show)
 
 # Creates a window and sets it's title and makes it fullscreen
 Win = Tk()
@@ -65,11 +67,8 @@ def LogIn():
     
     # Declares important variables
     email = StringVar()
-    email.set("Enter email")
     username = StringVar()
-    username.set("Enter username")
     password = StringVar()
-    password.set("Enter password")
 
     # Changes the colour of the background
     Win.config(bg = "light blue")
@@ -85,16 +84,23 @@ def LogIn():
     # Creates an entry box for the user to enter the email address
     etrEmail = Entry(width = 30, bg = "white", textvariable = email, font = ("Calibri", 16))
     etrEmail.place(relx = 0.5, rely = 0.4, anchor = CENTER)
+    etrEmail.insert(0, "Enter email")
+    etrEmail.bind('<FocusIn>', funSetText(etrEmail, email, "Enter email", None))
+    etrEmail.bind('<FocusOut>', funClearText(etrEmail, email, "Enter email", None))
     
     # Creates an entry box for the user to enter the username
     etrUsername = Entry(width = 30, bg = "white", textvariable = username, font = ("Calibri", 16))
     etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+    etrUsername.insert(0, "Enter username")
+    etrUsername.bind('<FocusIn>', funSetText(etrUsername, username, "Enter username", None))
+    etrUsername.bind('<FocusOut>', funClearText(etrUsername, username, "Enter username", None))
     
     # Creates an entry box for the user to enter the password
-    etrPassword = Entry(width = 30, bg = "white", textvariable = password, show = "*", font = ("Calibri", 16))
+    etrPassword = Entry(width = 30, bg = "white", textvariable = password, show = None, font = ("Calibri", 16))
     etrPassword.place(relx = 0.5, rely = 0.6, anchor = CENTER)
-    etrPassword.bind('<FocusIn', funSetText(etrPassword, password, "Enter password"))
-    etrPassword.bind('<FocusOut', funClearText(etrPassword, password, "Enter password"))
+    etrPassword.insert(0, "Enter password")
+    etrPassword.bind('<FocusIn>', funSetText(etrPassword, password, "Enter password", None))
+    etrPassword.bind('<FocusOut>', funClearText(etrPassword, password, "Enter password", "*"))
     
     # Creates a button that submits the data
     btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: LogInCheck(email, username, password))
