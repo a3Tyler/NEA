@@ -2,6 +2,7 @@
 # Import key functions
 from tkinter import *
 from re import *
+from Server import funFindUsername, funCheckPassword, funCheckEmail
 
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
@@ -33,38 +34,39 @@ def funClearText(widget, text_variable, default_text, hide):
         widget.delete(0, END)
 
 # Subroutine that checks the database to validate the user
-def funLogInCheck(email, username, password):
-    # Finds the user in the database using the username
-    user_id = funFindUsername(username)
+def funLogInCheck(varEmail, varUsername, varPassword):
+    # Gets the email address, username and password
+    email = varEmail.get()
+    username = varUsername.get()
+    password = varPassword.get()
+    
+    # Clears the screen
+    funClear()
 
     # Checks if a user has been found
-    if user_id == None:
-        print("ERROR: 'username' not found in database")
-        funClose()
-    else:
+    if funFindUsername(username):
         # Validates the user using the password and email address
-        if funCheckPassword(password, user_id) and funValidateEmail(email, user_id):
+        if funCheckPassword(username, password) and funValidateEmail(username, email):
             print("Yet to start")
-
-# Function that finds the username in a database
-def funFindUsername(username):
-    print("Yet to start")
-
-# Function that checks the password
-def funCheckPassword(password, user_id):
-    print("Yet to start")
+    else:
+        # Displays that the user does not exist
+        txtError = Label(bg = "red", text = f"ERROR: user with username: '{username}' does not exist", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: LogIn())
 
 # Function that validates and checks the email address
-def funValidateEmail(email, user_id):
+def funValidateEmail(username, email):
     # Creates a variable that represents the standard expression for an email address
     standard_expression = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
 
     # Compares the string to the standard expression for an email address
     if fullmatch(standard_expression, email):
-        # Compares it to the user's email address in the database
-        print("Yet to start")
+        return funCheckEmail(email, username)
     else:
-        return False
+        # Displays that the user does not exist
+        txtError = Label(bg = "red", text = "ERROR: email is not valid", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: LogIn())
 
 # Subroutine that sends the data to the database
 def funSendDetails(email, username, password, confirm):
@@ -151,7 +153,7 @@ def LogIn():
     etrPassword.bind('<FocusIn>', lambda x: funClearText(etrPassword, password, "Enter password", True))
     
     # Creates a button that submits the data
-    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funLogInCheck(email, username, password))
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funLogInCheck(etrEmail, etrUsername, etrPassword))
     btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
     
     # Creates a button to go back to the prevous screen
