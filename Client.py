@@ -2,7 +2,7 @@
 # Import key functions
 from tkinter import *
 from re import *
-from Server import funFindUsername, funCheckPassword, funCheckEmail
+from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser
 
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
@@ -35,7 +35,7 @@ def funClearText(widget, text_variable, default_text, hide):
 
 # Subroutine that checks the database to validate the user
 def funLogInCheck(varEmail, varUsername, varPassword):
-    # Gets the email address, username and password
+    # Gets the data from the entries
     email = varEmail.get()
     username = varUsername.get()
     password = varPassword.get()
@@ -47,7 +47,19 @@ def funLogInCheck(varEmail, varUsername, varPassword):
     if funFindUsername(username):
         # Validates the user using the password and email address
         if funCheckPassword(username, password) and funValidateEmail(username, email):
-            print("Yet to start")
+            # Retrieves all of the user's data
+            user = funReturnUser(username)
+
+            # Selects the screen to go to based on the type of account
+            if user.type == "Teacher":
+                TeacherHub(user)
+            elif user.type == "Student":
+                StudentHub(user)
+            else:
+                # Displays an error if the user doesn't have either type of account
+                txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
+                txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+                Win.mainloop()
     else:
         # Displays that the user does not exist
         txtError = Label(bg = "red", text = f"ERROR: user with username: '{username}' does not exist", font = ("Arial", 24))
@@ -61,7 +73,7 @@ def funValidateEmail(username, email):
 
     # Compares the string to the standard expression for an email address
     if fullmatch(standard_expression, email):
-        return funCheckEmail(email, username)
+        return funCheckEmail(username, email)
     else:
         # Displays that the user does not exist
         txtError = Label(bg = "red", text = "ERROR: email is not valid", font = ("Arial", 24))
@@ -69,8 +81,31 @@ def funValidateEmail(username, email):
         txtError.after(5000, lambda: LogIn())
 
 # Subroutine that sends the data to the database
-def funSendDetails(email, username, password, confirm):
-    print("Yet to start")
+def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
+    # Gets the data from the entries
+    email = varEmail.get()
+    username = varUsername.get()
+    password = varPassword.get()
+    confirm = varConfirm.get()
+
+    # Clears the screen
+    funClear()
+
+    # Compares the passwords
+    if password == confirm:
+        # Sends the data to the database
+        if funCreateUser(type, email, username, password):
+            # Goes to authentification
+            Authentication()
+        else:
+            # Displays an error if there is an existing user
+            txtError = Label(bg = "red", text = f"ERROR: there is an existing user with username = '{username}'", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            txtError.after(5000, lambda: AccountDetails(type))
+    else:
+        txtError = Label(bg = "red", text = "Please enter the same password for both entries", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: AccountDetails(type))
 # # # # # END # # # # #
 
 # Creates a window and sets it's title and makes it fullscreen
@@ -108,7 +143,7 @@ def Welcome():
     
     # Keeps on displaying the screen unless something happens
     Win.mainloop()
-# # # # # END # # # # #
+    # # # # # END # # # # #
 
 # # # # # LOG IN SCREEN # # # # #
 def LogIn():
@@ -213,8 +248,10 @@ def AccountDetails(type):
     elif type == "Student":
         Win.config(bg = "green")
     else:
-        print("ERROR: No 'type' for Account")
-        funClose()
+        # Displays an error if the user has no type
+        txtError = Label(bg = "red", text = "ERROR: user has no account type", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: AccountCreation())
     
     # Creates a label
     txtCreation_title = Label(bg = Win.cget("bg"), text = "Create an Account", font = ("Arial", 30))
@@ -253,7 +290,7 @@ def AccountDetails(type):
     etrConfirm.bind('<FocusIn>', lambda x: funClearText(etrConfirm, confirm, "Enter password again", True))
     
     # Creates a button that submits the data
-    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funSendDetails(email, username, password, confirm))
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funSendDetails(type, etrEmail, etrUsername, etrPassword, etrConfirm))
     btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
     
     # Creates a button to go back to the prevous screen
@@ -264,5 +301,22 @@ def AccountDetails(type):
     Win.mainloop()
 # # # # # END # # # # #
 
+# # # # # AUTHENTICATION # # # # #
+def Authentication():
+    print("Yet to start")
+# # # # # END # # # # #
+
+# # # # # TEACHER HUB # # # # #
+def TeacherHub(user):
+    print("Yet to start")
+# # # # # END # # # # #
+
+# # # # # STUDENT HUB # # # # #
+def StudentHub(user):
+    print("Yet to start")
+# # # # # END # # # # #
+
+# Starts the program
 Welcome()
+
 # # # # # END OF PROGRAM # # # # #

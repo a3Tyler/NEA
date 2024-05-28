@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import *
 
 # Create an engine and connect to a SQLite database file (search "SQL Online" and go to first link to find database)
-engine = create_engine('sqlite:///testit_user_database.db', echo=False)
+engine = create_engine('sqlite:///testit_user_database.db', echo = False)
 
 # Define a base class for declarative class definitions
 Base = declarative_base()
@@ -70,6 +70,86 @@ def funCheckEmail(username, input_email):
     
     # Closes the session
     session.close()
-    
+
     # Compares the inputted password to the user's password and returns the result
     return input_email == user.email
+
+# Function that returns all of the user's data
+def funReturnUser(username):
+    # Creates a session
+    session = Session()
+
+    # Query the database for the user with the given username
+    user = session.query(User).filter_by(username = username).first()
+
+    # Returns the user
+    return user
+
+# Function that creates a user
+def funCreateUser(type, email, username, password):
+    # Creates a session
+    session = Session()
+
+    # Checks if there is an existing user
+    existing_user = session.query(User).filter_by(username = username).first()
+    if existing_user:
+        # Closes the session
+        session.close()
+        return False
+    else:
+        # Creates a new user
+        new_user = User(type = type, email = email, username = username, password = password)
+
+        # Adds the new user to the database
+        session.add(new_user)
+        session.commit()
+
+        # Closes the session
+        session.close()
+        return True
+
+# Removes a user from the database
+def funRemoveUser(id):
+    # Creates a session
+    session = Session()
+
+    # Finds the user in the database using the id
+    user = session.query(User).filter_by(id = id).first()
+
+    # Checks that a user has been found
+    if user:
+        # Removes the user from the database
+        session.delete(user)
+        session.commit()
+
+        # Closes the session
+        session.close()
+    else:
+        # Closes the session
+        session.close()
+
+        # Outputs the error
+        print(f"ERROR: no user with id = {id}")
+
+# Clears the database
+def funClearDatabase():
+    # Creates a session
+    session = Session()
+
+    # Deletes all users until the database is cleared
+    Cleared = False
+    while not Cleared:
+        try:
+            # Finds the first user from the database
+            user = session.query(User).first()
+
+            # Removes the user from the database
+            session.delete(user)
+            session.commit()
+        except:
+            Cleared = True
+    
+    # Closes the session
+    session.close()
+# # # # # END # # # # #
+# # # # # END OF PORGRAM # # # # #
