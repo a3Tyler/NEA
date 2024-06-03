@@ -102,7 +102,7 @@ def funCreateUser(type, email, username, password):
         return False
     else:
         # Creates a new user
-        new_user = User(type = type, email = email, username = username, password = password)
+        new_user = User(type = type, email = email, username = username, password = password, authentication = False)
 
         # Adds the new user to the database
         session.add(new_user)
