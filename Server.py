@@ -4,6 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import *
 from smtplib import *
+from ssl import *
 from email.message import EmailMessage
 
 # Create an engine and connect to a SQLite database file (search "SQL Online" and go to first link to find database)
@@ -163,8 +164,11 @@ def funSendviaEmail(email, code):
     message['From'] = "testitauthentication@gmail.com"
     message['To'] = email
 
+    # Create a secure SSL context
+    context = create_default_context()
+    
     # Create an SMTP server
-    server = SMTP('localhost')
+    server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
     
     # Send the message
     server.send_message(message)
