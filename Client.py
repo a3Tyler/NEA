@@ -61,11 +61,11 @@ def funLogInCheck(varEmail, varUsername, varPassword):
             else:
                 # Goes to authentication
                     Authentication(user)
-            else:
-                # Displays an error if the user doesn't have either type of account
-                txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
-                txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-                Win.mainloop()
+        else:
+            # Displays an error if the user doesn't have either type of account
+            txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            Win.mainloop()
     else:
         # Displays that the user does not exist
         txtError = Label(bg = "red", text = f"ERROR: user with username: '{username}' does not exist", font = ("Arial", 24))
@@ -116,8 +116,8 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
 # Checks the authentication code
 def funCheckCode(user, varAuth_code, code, attempts):
     # Gets the inputted code
-    input_code = varAuth_code.get()
-
+    input_code = int(varAuth_code.get())
+    
     # Clears the screen
     funClear()
 
@@ -146,7 +146,7 @@ def funCheckCode(user, varAuth_code, code, attempts):
         else:
             txtError = Label(bg = "red", text = "Code is invalid", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-            txtError.after(5000, None)
+            txtError.after(5000)
 # # # # # END # # # # #
 
 # Creates a window and sets it's title and makes it fullscreen
@@ -365,7 +365,6 @@ def Authentication(user):
     # Creates an entry box for the user to enter the password
     etrAuth_code = Entry(width = 30, bg = "white", textvariable = input_code, font = ("Calibri", 16))
     etrAuth_code.place(relx = 0.5, rely = 0.6, anchor = CENTER)
-    etrAuth_code.insert(0, "Enter password")
     etrAuth_code.bind('<Return>', lambda x: funCheckCode(user, etrAuth_code, code, attempts))
 
     Win.mainloop()

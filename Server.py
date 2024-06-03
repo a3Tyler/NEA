@@ -171,6 +171,9 @@ def funSendviaEmail(email, code):
     # Create an SMTP server
     server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
     
+    # Log in to email
+    server.login("testitauthentication@gmail.com", "hkoz jqpx cttk ccox")
+
     # Send the message
     server.send_message(message)
     
