@@ -109,8 +109,39 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
         txtError.after(5000, lambda: AccountDetails(type))
 
 # Checks the authentication code
-def funCheckCode(varAuth_code, code, attempts):
-    print("Yet to start")
+def funCheckCode(user, varAuth_code, code, attempts):
+    # Gets the inputted code
+    input_code = varAuth_code.get()
+
+    # Clears the screen
+    funClear()
+
+    # Compares the inputted code to the generated code
+    if input_code == code:
+        # Edits the account to show that the account is legitimate
+        # Selects the screen to go to based on the type of account
+        if user.type == "Teacher":
+            TeacherHub(user)
+        elif user.type == "Student":
+            StudentHub(user)
+        else:
+            # Displays an error if the user doesn't have either type of account
+            txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            Win.mainloop()
+    else:
+        # Increments the variable 'attempts'
+        attempts += 1
+        
+        # Checks if this is the 3rd time the user has failed
+        if attempts % 3 == 0:
+            txtError = Label(bg = "red", text = "Code is invalid. Generating a new code...", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            txtError.after(5000, lambda: Authentication(user))
+        else:
+            txtError = Label(bg = "red", text = "Code is invalid", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            txtError.after(5000, None)
 # # # # # END # # # # #
 
 # Creates a window and sets it's title and makes it fullscreen
@@ -330,12 +361,13 @@ def Authentication(user):
     etrAuth_code = Entry(width = 30, bg = "white", textvariable = input_code, font = ("Calibri", 16))
     etrAuth_code.place(relx = 0.5, rely = 0.6, anchor = CENTER)
     etrAuth_code.insert(0, "Enter password")
-    etrAuth_code.bind('<Return>', lambda x: funCheckCode(etrAuth_code, code, attempts))
+    etrAuth_code.bind('<Return>', lambda x: funCheckCode(user, etrAuth_code, code, attempts))
     
     # Creates a button to go back to the prevous screen
     btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: AccountDetails(user.type))
     btnGo_back.place(relx = 0.01, rely = 0.95)
-        
+
+    Win.mainloop()
 # # # # # END # # # # #
 
 # # # # # TEACHER HUB # # # # #
