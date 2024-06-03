@@ -2,7 +2,8 @@
 # Import key functions
 from tkinter import *
 from re import *
-from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser
+from random import *
+from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser, funSendviaEmail
 
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
@@ -96,7 +97,7 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
         # Sends the data to the database
         if funCreateUser(type, email, username, password):
             # Goes to authentification
-            Authentication()
+            Authentication(funReturnUser(username))
         else:
             # Displays an error if there is an existing user
             txtError = Label(bg = "red", text = f"ERROR: there is an existing user with username = '{username}'", font = ("Arial", 24))
@@ -106,6 +107,10 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
         txtError = Label(bg = "red", text = "Please enter the same password for both entries", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: AccountDetails(type))
+
+# Checks the authentication code
+def funCheckCode(varAuth_code, code, attempts):
+    print("Yet to start")
 # # # # # END # # # # #
 
 # Creates a window and sets it's title and makes it fullscreen
@@ -302,8 +307,35 @@ def AccountDetails(type):
 # # # # # END # # # # #
 
 # # # # # AUTHENTICATION # # # # #
-def Authentication():
-    print("Yet to start")
+def Authentication(user):
+    # Clears the screen
+    funClear()
+    
+    # Generates a code and sends it via email
+    code = randint(1000, 9999)
+    funSendviaEmail(user.email, code)
+    
+    input_code = IntVar()
+    attempts = 0
+    
+    # Creates a label
+    txtAuth_title = Label(bg = Win.cget("bg"), text = "Authenticate your account", font = ("Arial", 30))
+    txtAuth_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
+    
+    # Creates a label
+    txtAuth_command = Label(bg = Win.cget("bg"), text = "Enter the 4 digit code that has been sent to the email address", font = ("Arial", 16))
+    txtAuth_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
+    
+    # Creates an entry box for the user to enter the password
+    etrAuth_code = Entry(width = 30, bg = "white", textvariable = input_code, font = ("Calibri", 16))
+    etrAuth_code.place(relx = 0.5, rely = 0.6, anchor = CENTER)
+    etrAuth_code.insert(0, "Enter password")
+    etrAuth_code.bind('<Return>', lambda x: funCheckCode(etrAuth_code, code, attempts))
+    
+    # Creates a button to go back to the prevous screen
+    btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: AccountDetails(user.type))
+    btnGo_back.place(relx = 0.01, rely = 0.95)
+        
 # # # # # END # # # # #
 
 # # # # # TEACHER HUB # # # # #

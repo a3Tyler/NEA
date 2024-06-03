@@ -3,6 +3,8 @@
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import *
+from smtplib import *
+from email.message import EmailMessage
 
 # Create an engine and connect to a SQLite database file (search "SQL Online" and go to first link to find database)
 engine = create_engine('sqlite:///testit_user_database.db', echo = False)
@@ -151,5 +153,23 @@ def funClearDatabase():
     
     # Closes the session
     session.close()
+    
+# Sends an email to the email address given
+def funSendviaEmail(email, code):
+    # Creates an message
+    message = EmailMessage()
+    message.set_content(f"Welcome!\n\nThanks for setting up an account with us! Enter the authentication code below so that you can confirm that you are a legitimate user.\n\nYour code is: {code}\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
+    message['Subject'] = "Authentication"
+    message['From'] = "testitauthentication@gmail.com"
+    message['To'] = email
+
+    # Create an SMTP server
+    server = SMTP('localhost')
+    
+    # Send the message
+    server.send_message(message)
+    
+    # Terminate the SMTP server
+    server.quit()
 # # # # # END # # # # #
 # # # # # END OF PORGRAM # # # # #
