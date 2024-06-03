@@ -23,6 +23,7 @@ class User(Base):
     email = Column(String)
     username = Column(String, unique = True)
     password = Column(String)
+    authentication = Column(Boolean)
 # # # # # END # # # # #
 
 # Create all defined tables
