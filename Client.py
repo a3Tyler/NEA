@@ -51,11 +51,16 @@ def funLogInCheck(varEmail, varUsername, varPassword):
             # Retrieves all of the user's data
             user = funReturnUser(username)
 
-            # Selects the screen to go to based on the type of account
-            if user.type == "Teacher":
-                TeacherHub(user)
-            elif user.type == "Student":
-                StudentHub(user)
+            # Checks that the account has been authenticated
+            if user.authentication:
+                # Selects the screen to go to based on the type of account
+                if user.type == "Teacher":
+                    TeacherHub(user)
+                elif user.type == "Student":
+                    StudentHub(user)
+            else:
+                # Goes to authentication
+                    Authentication(user)
             else:
                 # Displays an error if the user doesn't have either type of account
                 txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
@@ -362,10 +367,6 @@ def Authentication(user):
     etrAuth_code.place(relx = 0.5, rely = 0.6, anchor = CENTER)
     etrAuth_code.insert(0, "Enter password")
     etrAuth_code.bind('<Return>', lambda x: funCheckCode(user, etrAuth_code, code, attempts))
-    
-    # Creates a button to go back to the prevous screen
-    btnGo_back = Button(bg = "dark blue", activebackground = "blue", text = "Go Back", font = ("Calibri", 16), command = lambda: AccountDetails(user.type))
-    btnGo_back.place(relx = 0.01, rely = 0.95)
 
     Win.mainloop()
 # # # # # END # # # # #
