@@ -112,7 +112,7 @@ def funCreateUser(type, email, username, password):
         session.close()
         return True
 
-# Removes a user from the database
+# Function that removes a user from the database
 def funRemoveUser(id):
     # Creates a session
     session = Session()
@@ -135,7 +135,7 @@ def funRemoveUser(id):
         # Outputs the error
         print(f"ERROR: no user with id = {id}")
 
-# Clears the database
+# Function that clears the database
 def funClearDatabase():
     # Creates a session
     session = Session()
@@ -156,8 +156,8 @@ def funClearDatabase():
     # Closes the session
     session.close()
     
-# Sends an email to the email address given
-def funSendviaEmail(email, code):
+# Function that sends an email to the email address given
+def funSendCodeviaEmail(email, code):
     # Creates an message
     message = EmailMessage()
     message.set_content(f"Welcome!\n\nThanks for setting up an account with us! Enter the authentication code below so that you can confirm that you are a legitimate user.\n\nYour code is: {code}\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
@@ -165,19 +165,60 @@ def funSendviaEmail(email, code):
     message['From'] = "testitauthentication@gmail.com"
     message['To'] = email
 
-    # Create a secure SSL context
+    # Creates a secure SSL context
     context = create_default_context()
     
-    # Create an SMTP server
+    # Creates an SMTP server
     server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
     
-    # Log in to email
+    # Logs in to email
     server.login("testitauthentication@gmail.com", "hkoz jqpx cttk ccox")
 
-    # Send the message
+    # Sends the message
     server.send_message(message)
     
-    # Terminate the SMTP server
+    # Terminates the SMTP server
+    server.quit()
+
+# Function that authenticates the user to the database
+def funAuthenticateUser(username):
+    # Creates a session
+    session = Session()
+    
+    # Finds the user in the database
+    user = session.query(User).filter_by(username = username).first()
+    
+    # Updates the user
+    user.authentication = True
+    
+    # Saves the changes
+    session.commit()
+    
+    # Closes the session
+    session.close()
+
+# Function that sends an email for the log in
+def funSendLogInEmail(email):
+    # Creates an message
+    message = EmailMessage()
+    message.set_content(f"Welcome!\n\nYou have now logged into your account! If this wasn't you then please ask for support.\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
+    message['Subject'] = "Log In success"
+    message['From'] = "testitauthentication@gmail.com"
+    message['To'] = email
+
+    # Creates a secure SSL context
+    context = create_default_context()
+    
+    # Creates an SMTP server
+    server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
+    
+    # Logs in to email
+    server.login("testitauthentication@gmail.com", "hkoz jqpx cttk ccox")
+
+    # Sends the message
+    server.send_message(message)
+    
+    # Terminates the SMTP server
     server.quit()
 # # # # # END # # # # #
 # # # # # END OF PORGRAM # # # # #

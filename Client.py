@@ -3,7 +3,7 @@
 from tkinter import *
 from re import *
 from random import *
-from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser, funSendviaEmail
+from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser, funSendCodeviaEmail, funAuthenticateUser, funSendLogInEmail
 
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
@@ -47,44 +47,80 @@ def funLogInCheck(varEmail, varUsername, varPassword):
     # Checks if a user has been found
     if funFindUsername(username):
         # Validates the user using the password and email address
-        if funCheckPassword(username, password) and funValidateEmail(username, email):
-            # Retrieves all of the user's data
-            user = funReturnUser(username)
+        if funValidateEmail(email):
+            # Checks the details match
+            if funCheckPassword(username, password) and funCheckEmail(username, email):
+                # Retrieves all of the user's data
+                user = funReturnUser(username)
 
-            # Checks that the account has been authenticated
-            if user.authentication:
-                # Selects the screen to go to based on the type of account
-                if user.type == "Teacher":
-                    TeacherHub(user)
-                elif user.type == "Student":
-                    StudentHub(user)
-            else:
-                # Goes to authentication
+                # Checks that the account has been authenticated
+                if user.authentication:
+                    # Sends an email confirming te log in
+                    funSendLogInEmail(user.email)
+                    # Selects the screen to go to based on the type of account
+                    if user.type == "Teacher":
+                        TeacherHub(user)
+                    elif user.type == "Student":
+                        StudentHub(user)
+                    else:
+                        # Displays an error if the user doesn't have either type of account
+                        txtError = Label(bg = "red", text = "ERROR: user data is extraneous. Please ask for support.", font = ("Arial", 24))
+                        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+                        Win.mainloop()
+                else:
+                    # Goes to authentication
                     Authentication(user)
+            else:
+                # Displays that the user does not exist
+                txtError = Label(bg = "red", text = "ERROR: user details incorrect", font = ("Arial", 24))
+                txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+                txtError.after(5000, lambda: LogIn())
         else:
-            # Displays an error if the user doesn't have either type of account
-            txtError = Label(bg = "red", text = "ERROR: user data is invalid. Please ask for support.", font = ("Arial", 24))
+            # Displays that the user does not exist
+            txtError = Label(bg = "red", text = "ERROR: email is not valid", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-            Win.mainloop()
+            txtError.after(5000, lambda: LogIn())
     else:
         # Displays that the user does not exist
         txtError = Label(bg = "red", text = f"ERROR: user with username: '{username}' does not exist", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: LogIn())
 
+# Function that validates and checks the password
+def funValidatePassword(password):
+    # Checks the password is long enough
+    if len(password) > 6:
+        # Declares variables to track the characters in the password
+        lowercase = False
+        uppercase = False
+        number = False
+        symbol = False
+        
+        # Goes through each character in the password and determines what type of character it is
+        for i in range(0, len(password) - 1):
+            if 32 < ord(password[i]) < 48 or 57 < ord(password[i]) < 65 or 90 < ord(password[i]) < 97 or 122 < ord(password[i]) < 127:
+                symbol = True
+            elif 47 < ord(password[i]) < 58:
+                number = True
+            elif 64 < ord(password[i]) < 91:
+                uppercase = True
+            elif 96 < ord(password[i]) < 123:
+                lowercase = True
+            else:
+                return False
+        
+        # Checks all requirements are met
+        return symbol and number and uppercase and lowercase
+    else:
+        return False
+
 # Function that validates and checks the email address
-def funValidateEmail(username, email):
+def funValidateEmail(email):
     # Creates a variable that represents the standard expression for an email address
     standard_expression = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
 
     # Compares the string to the standard expression for an email address
-    if fullmatch(standard_expression, email):
-        return funCheckEmail(username, email)
-    else:
-        # Displays that the user does not exist
-        txtError = Label(bg = "red", text = "ERROR: email is not valid", font = ("Arial", 24))
-        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-        txtError.after(5000, lambda: LogIn())
+    return fullmatch(standard_expression, email)
 
 # Subroutine that sends the data to the database
 def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
@@ -98,7 +134,7 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
     funClear()
 
     # Compares the passwords
-    if password == confirm:
+    if password == confirm and funValidatePassword(password) and funValidateEmail(email):
         # Sends the data to the database
         if funCreateUser(type, email, username, password):
             # Goes to authentification
@@ -109,14 +145,14 @@ def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
             txtError.after(5000, lambda: AccountDetails(type))
     else:
-        txtError = Label(bg = "red", text = "Please enter the same password for both entries", font = ("Arial", 24))
+        txtError = Label(bg = "red", text = "Please enter the password and email correctly", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: AccountDetails(type))
 
 # Checks the authentication code
 def funCheckCode(user, varAuth_code, code, attempts):
     # Gets the inputted code
-    input_code = int(varAuth_code.get())
+    input_code = varAuth_code.get()
     
     # Clears the screen
     funClear()
@@ -124,6 +160,8 @@ def funCheckCode(user, varAuth_code, code, attempts):
     # Compares the inputted code to the generated code
     if input_code == code:
         # Edits the account to show that the account is legitimate
+        funAuthenticateUser(user.username)
+        
         # Selects the screen to go to based on the type of account
         if user.type == "Teacher":
             TeacherHub(user)
@@ -348,10 +386,10 @@ def Authentication(user):
     funClear()
     
     # Generates a code and sends it via email
-    code = randint(1000, 9999)
-    funSendviaEmail(user.email, code)
+    code = str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9))
+    funSendCodeviaEmail(user.email, code)
     
-    input_code = IntVar()
+    input_code = StringVar()
     attempts = 0
     
     # Creates a label
