@@ -13,15 +13,26 @@ engine = create_engine('sqlite:///testit_user_database.db', echo = False)
 # Define a base class for declarative class definitions
 Base = declarative_base()
 
-# # # # # USER TABLE # # # # #
-class User(Base):
-    __tablename__ = 'users'
+# # # # # TEACHER TABLE # # # # #
+class Teacher(Base):
+    __tablename__ = 'teachers'
     
     # Table fields
     id = Column(Integer, primary_key = True)
-    type = Column(String)
+    user_id = Column(String, unique = True)
     email = Column(String)
-    username = Column(String, unique = True)
+    password = Column(String)
+    authentication = Column(Boolean)
+# # # # # END # # # # #
+
+# # # # # STUDENT TABLE # # # # #
+class Student(Base):
+    __tablename__ = 'students'
+    
+    # Table fields
+    id = Column(Integer, primary_key = True)
+    user_id = Column(String, unique = True)
+    email = Column(String)
     password = Column(String)
     authentication = Column(Boolean)
 # # # # # END # # # # #
@@ -33,92 +44,136 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind = engine)
 
 # # # # # FUNCTIONS # # # # #
-# Function checks if the username exists in the database
-def funFindUsername(username):
+# Function that contructs the user id
+def funConstructID(type, name):
+    # Creates the basic id for the user of that name and account type
+    if type == 'Teacher':
+        user_id = "T"
+    elif type == 'Student':
+        user_id = "S"
+    
+    for i in range(0, len(name) - 1):
+        if i == 0:
+            user_id = user_id + name[i]
+        elif name[i] == " " and 64 < ord(name[i + 1]) < 91:
+            user_id = user_id + name[i + 1]
+    
+    # Finds the first user id that isn't used already
+    number = -1
+    taken = True
+    while taken:
+        number += 1
+        if number < 10:
+            taken = funFindUser(user_id + "00" + str(number))
+        elif 10 < number < 100:
+            taken = funFindUser(user_id + "0" + str(number))
+        elif taken >= 1000:
+            # Limits the amount of user id per name and account type to 1000
+            return False
+    
+    # Completes the user id
+    if number < 10:
+        user_id = user_id + "00" + str(number)
+    elif 10 < number < 100:
+        user_id = user_id + "0" + str(number)
+    
+    # Outputs the user id
+    return user_id
+
+# Function that finds the user in the database
+def funFindUser(user_id):
     # Creates a session
     session = Session()
     
-    # Query the database for a user with the given username
-    user = session.query(User).filter_by(username = username).first()
-    
-    # Closes the session
-    session.close()
-    
-    # Returns if the username has been found in the databse
-    if user:
-        return True
+    if user_id[0] == 'T':
+        # Query the teacher table for a user with the given username
+        user = session.query(Teacher).filter_by(user_id = user_id).first()
+    elif user_id[0] == 'S':
+        # Query the student table for a user with the given username
+        user = session.query(Student).filter_by(user_id = user_id).first()
     else:
-        return False
-
-# Function that checks if the inputted password is correct
-def funCheckPassword(username, input_password):
-    # Creates a session
-    session = Session()
-    
-    # Query the database for the user with the given username
-    user = session.query(User).filter_by(username = username).first()
+        # Closes the session
+        session.close()
+        
+        return None
     
     # Closes the session
     session.close()
     
-    # Compares the inputted password to the user's password and returns the result
-    return input_password == user.password
-
-# Function that checks if the inputted email address is correct
-def funCheckEmail(username, input_email):
-    # Creates a session
-    session = Session()
-    
-    # Query the database for the user with the given username
-    user = session.query(User).filter_by(username = username).first()
-    
-    # Closes the session
-    session.close()
-
-    # Compares the inputted password to the user's password and returns the result
-    return input_email == user.email
-
-# Function that returns all of the user's data
-def funReturnUser(username):
-    # Creates a session
-    session = Session()
-
-    # Query the database for the user with the given username
-    user = session.query(User).filter_by(username = username).first()
-
-    # Returns the user
-    return user
+    if user:
+        return user
+    else:
+        return None
 
 # Function that creates a user
-def funCreateUser(type, email, username, password):
+def funCreateUser(type, name, email, password):
     # Creates a session
     session = Session()
+    
+    # Constructs the user id
+    user_id = funConstructID(type, name)
+    
+    if not user_id:
+        
 
-    # Checks if there is an existing user
-    existing_user = session.query(User).filter_by(username = username).first()
-    if existing_user:
-        # Closes the session
-        session.close()
-        return False
-    else:
-        # Creates a new user
-        new_user = User(type = type, email = email, username = username, password = password, authentication = False)
+    if user_id[0] == 'T':
+        # Checks if there is an existing user
+        existing_user = session.query(Teacher).filter_by(user_id = user_id).first()
+        if existing_user:
+            # Closes the session
+            session.close()
+            
+            return False
+        else:
+            # Creates a new user
+            new_user = Teacher(user_id = user_id, email = email, password = password, authentication = False)
 
-        # Adds the new user to the database
-        session.add(new_user)
-        session.commit()
+            # Adds the new user to the database
+            session.add(new_user)
+            session.commit()
 
-        # Closes the session
-        session.close()
-        return True
+            # Closes the session
+            session.close()
+            
+            return new_user
+    elif user_id[0] == 'S':
+        # Checks if there is an existing user
+        existing_user = session.query(Student).filter_by(user_id = user_id).first()
+        if existing_user:
+            # Closes the session
+            session.close()
+            
+            return False
+        else:
+            # Creates a new user
+            new_user = Student(user_id = user_id, email = email, password = password, authentication = False)
+
+            # Adds the new user to the database
+            session.add(new_user)
+            session.commit()
+
+            # Closes the session
+            session.close()
+            
+            return new_user
 
 # Function that removes a user from the database
-def funRemoveUser(id):
+def funRemoveUser(user_id):
     # Creates a session
     session = Session()
 
-    # Finds the user in the database using the id
-    user = session.query(User).filter_by(id = id).first()
+    if user_id[0] == 'T':
+        # Finds the user in the database using the id
+        user = session.query(Teacher).filter_by(user_id = user_id).first()
+    elif user_id[0] == 'S':
+        # Finds the user in the database using the id
+        user = session.query(Teacher).filter_by(user_id = user_id).first()
+    else:
+        # Closes the session
+        session.close()
+        
+        # Outputs the error
+        return None
 
     # Checks that a user has been found
     if user:
@@ -133,7 +188,7 @@ def funRemoveUser(id):
         session.close()
 
         # Outputs the error
-        print(f"ERROR: no user with id = {id}")
+        return None
 
 # Function that clears the database
 def funClearDatabase():
@@ -145,7 +200,19 @@ def funClearDatabase():
     while not Cleared:
         try:
             # Finds the first user from the database
-            user = session.query(User).first()
+            user = session.query(Teacher).first()
+
+            # Removes the user from the database
+            session.delete(user)
+            session.commit()
+        except:
+            Cleared = True
+    
+    Cleared = False
+    while not Cleared:
+        try:
+            # Finds the first user from the database
+            user = session.query(Teacher).first()
 
             # Removes the user from the database
             session.delete(user)
@@ -181,14 +248,14 @@ def funSendCodeviaEmail(email, code):
     server.quit()
 
 # Function that authenticates the user to the database
-def funAuthenticateUser(username):
+def funAuthenticateUser(user_id):
     # Creates a session
     session = Session()
     
     # Finds the user in the database
-    user = session.query(User).filter_by(username = username).first()
+    user = funFindUser(user_id)
     
-    # Updates the user
+    # Updates the user authentication status
     user.authentication = True
     
     # Saves the changes

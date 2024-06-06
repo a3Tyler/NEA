@@ -3,7 +3,7 @@
 from tkinter import *
 from re import *
 from random import *
-from Server import funFindUsername, funCheckPassword, funCheckEmail, funReturnUser, funCreateUser, funSendCodeviaEmail, funAuthenticateUser, funSendLogInEmail
+from Server import funFindUser, funCreateUser, funSendCodeviaEmail, funAuthenticateUser, funSendLogInEmail
 
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
@@ -35,44 +35,46 @@ def funClearText(widget, text_variable, default_text, hide):
         widget.delete(0, END)
 
 # Subroutine that checks the database to validate the user
-def funLogInCheck(varEmail, varUsername, varPassword):
+def funLogInCheck(varEmail, varUserID, varPassword):
     # Gets the data from the entries
     email = varEmail.get()
-    username = varUsername.get()
+    user_id = varUserID.get()
     password = varPassword.get()
     
     # Clears the screen
     funClear()
 
+    # Finds the user
+    user = funFindUser(user_id)
+    
     # Checks if a user has been found
-    if funFindUsername(username):
+    if user:
         # Validates the user using the password and email address
         if funValidateEmail(email):
             # Checks the details match
-            if funCheckPassword(username, password) and funCheckEmail(username, email):
-                # Retrieves all of the user's data
-                user = funReturnUser(username)
-
+            if password == user.password and email == user.email:
                 # Checks that the account has been authenticated
                 if user.authentication:
-                    # Sends an email confirming te log in
+                    # Sends an email confirming the log in
                     funSendLogInEmail(user.email)
+                    
                     # Selects the screen to go to based on the type of account
-                    if user.type == "Teacher":
+                    if user_id[0] == 'T':
                         TeacherHub(user)
-                    elif user.type == "Student":
+                    elif user_id[0] == 'S':
                         StudentHub(user)
                     else:
                         # Displays an error if the user doesn't have either type of account
                         txtError = Label(bg = "red", text = "ERROR: user data is extraneous. Please ask for support.", font = ("Arial", 24))
                         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+                        
                         Win.mainloop()
                 else:
                     # Goes to authentication
                     Authentication(user)
             else:
                 # Displays that the user does not exist
-                txtError = Label(bg = "red", text = "ERROR: user details incorrect", font = ("Arial", 24))
+                txtError = Label(bg = "red", text = "ERROR: user details are incorrect", font = ("Arial", 24))
                 txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
                 txtError.after(5000, lambda: LogIn())
         else:
@@ -82,7 +84,7 @@ def funLogInCheck(varEmail, varUsername, varPassword):
             txtError.after(5000, lambda: LogIn())
     else:
         # Displays that the user does not exist
-        txtError = Label(bg = "red", text = f"ERROR: user with username: '{username}' does not exist", font = ("Arial", 24))
+        txtError = Label(bg = "red", text = f"ERROR: user does not exist", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: LogIn())
 
@@ -123,27 +125,20 @@ def funValidateEmail(email):
     return fullmatch(standard_expression, email)
 
 # Subroutine that sends the data to the database
-def funSendDetails(type, varEmail, varUsername, varPassword, varConfirm):
+def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
     # Gets the data from the entries
     email = varEmail.get()
-    username = varUsername.get()
+    name = varName.get()
     password = varPassword.get()
     confirm = varConfirm.get()
-
+    
     # Clears the screen
     funClear()
-
+    
     # Compares the passwords
     if password == confirm and funValidatePassword(password) and funValidateEmail(email):
-        # Sends the data to the database
-        if funCreateUser(type, email, username, password):
-            # Goes to authentification
-            Authentication(funReturnUser(username))
-        else:
-            # Displays an error if there is an existing user
-            txtError = Label(bg = "red", text = f"ERROR: there is an existing user with username = '{username}'", font = ("Arial", 24))
-            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-            txtError.after(5000, lambda: AccountDetails(type))
+        # Sends the data to the database, creates a user and goes to authentication
+        Authentication(funCreateUser(type, name, email, password))
     else:
         txtError = Label(bg = "red", text = "Please enter the password and email correctly", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
@@ -160,7 +155,7 @@ def funCheckCode(user, varAuth_code, code, attempts):
     # Compares the inputted code to the generated code
     if input_code == code:
         # Edits the account to show that the account is legitimate
-        funAuthenticateUser(user.username)
+        funAuthenticateUser(user.user_id)
         
         # Selects the screen to go to based on the type of account
         if user.type == "Teacher":
@@ -231,7 +226,7 @@ def LogIn():
     
     # Declares important variables
     email = StringVar()
-    username = StringVar()
+    name = StringVar()
     password = StringVar()
 
     # Changes the colour of the background
@@ -242,7 +237,7 @@ def LogIn():
     txtLogIn_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
     
     # Creates a label
-    txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
+    txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, name and password below", font = ("Arial", 16))
     txtLogIn_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
     # Creates an entry box for the user to enter the email address
@@ -252,12 +247,12 @@ def LogIn():
     etrEmail.bind('<FocusOut>', lambda x: funSetText(etrEmail, email, "Enter email", False))
     etrEmail.bind('<FocusIn>', lambda x: funClearText(etrEmail, email, "Enter email", False))
     
-    # Creates an entry box for the user to enter the username
-    etrUsername = Entry(width = 30, bg = "white", textvariable = username, font = ("Calibri", 16))
-    etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-    etrUsername.insert(0, "Enter username")
-    etrUsername.bind('<FocusOut>', lambda x: funSetText(etrUsername, username, "Enter username", False))
-    etrUsername.bind('<FocusIn>', lambda x: funClearText(etrUsername, username, "Enter username", False))
+    # Creates an entry box for the user to enter the user's name
+    etrName = Entry(width = 30, bg = "white", textvariable = name, font = ("Calibri", 16))
+    etrName.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+    etrName.insert(0, "Enter full name")
+    etrName.bind('<FocusOut>', lambda x: funSetText(etrName, name, "Enter full name", False))
+    etrName.bind('<FocusIn>', lambda x: funClearText(etrName, name, "Enter full name", False))
     
     # Creates an entry box for the user to enter the password
     etrPassword = Entry(width = 30, bg = "white", textvariable = password, font = ("Calibri", 16))
@@ -267,7 +262,7 @@ def LogIn():
     etrPassword.bind('<FocusIn>', lambda x: funClearText(etrPassword, password, "Enter password", True))
     
     # Creates a button that submits the data
-    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funLogInCheck(etrEmail, etrUsername, etrPassword))
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funLogInCheck(etrEmail, etrName, etrPassword))
     btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
     
     # Creates a button to go back to the prevous screen
@@ -317,7 +312,7 @@ def AccountDetails(type):
     
     # Declares important variables
     email = StringVar()
-    username = StringVar()
+    name = StringVar()
     password = StringVar()
     confirm = StringVar()
 
@@ -337,7 +332,7 @@ def AccountDetails(type):
     txtCreation_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
     
     # Creates a label
-    txtCreation_command = Label(bg = Win.cget("bg"), text = "Enter your email, username and password below", font = ("Arial", 16))
+    txtCreation_command = Label(bg = Win.cget("bg"), text = "Enter your email, full name and password below", font = ("Arial", 16))
     txtCreation_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
     # Creates an entry box for the user to enter the email address
@@ -347,12 +342,12 @@ def AccountDetails(type):
     etrEmail.bind('<FocusOut>', lambda x: funSetText(etrEmail, email, "Enter email", False))
     etrEmail.bind('<FocusIn>', lambda x: funClearText(etrEmail, email, "Enter email", False))
     
-    # Creates an entry box for the user to enter the username
-    etrUsername = Entry(width = 30, bg = "white", textvariable = username, font = ("Calibri", 16))
-    etrUsername.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-    etrUsername.insert(0, "Enter username")
-    etrUsername.bind('<FocusOut>', lambda x: funSetText(etrUsername, username, "Enter username", False))
-    etrUsername.bind('<FocusIn>', lambda x: funClearText(etrUsername, username, "Enter username", False))
+    # Creates an entry box for the user to enter the user's name
+    etrName = Entry(width = 30, bg = "white", textvariable = name, font = ("Calibri", 16))
+    etrName.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+    etrName.insert(0, "Enter full name")
+    etrName.bind('<FocusOut>', lambda x: funSetText(etrName, name, "Enter full name", False))
+    etrName.bind('<FocusIn>', lambda x: funClearText(etrName, name, "Enter full name", False))
     
     # Creates an entry box for the user to enter the password
     etrPassword = Entry(width = 30, bg = "white", textvariable = password, font = ("Calibri", 16))
@@ -369,7 +364,7 @@ def AccountDetails(type):
     etrConfirm.bind('<FocusIn>', lambda x: funClearText(etrConfirm, confirm, "Enter password again", True))
     
     # Creates a button that submits the data
-    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funSendDetails(type, etrEmail, etrUsername, etrPassword, etrConfirm))
+    btnSubmit = Button(width = 15, bg = "green", activebackground = "light green", text = "Submit", font = ("Calibri", 16), command = lambda: funSendDetails(type, etrEmail, etrName, etrPassword, etrConfirm))
     btnSubmit.place(relx = 0.5, rely = 0.85, anchor = CENTER)
     
     # Creates a button to go back to the prevous screen
