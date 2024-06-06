@@ -99,8 +99,8 @@ def funValidatePassword(password):
         symbol = False
         
         # Goes through each character in the password and determines what type of character it is
-        for i in range(0, len(password) - 1):
-            if 32 < ord(password[i]) < 48 or 57 < ord(password[i]) < 65 or 90 < ord(password[i]) < 97 or 122 < ord(password[i]) < 127:
+        for i in range(0, len(password)):
+            if (32 < ord(password[i]) < 48) or (57 < ord(password[i]) < 65) or (90 < ord(password[i]) < 97) or (122 < ord(password[i]) < 127):
                 symbol = True
             elif 47 < ord(password[i]) < 58:
                 number = True
@@ -120,7 +120,7 @@ def funValidatePassword(password):
 def funValidateEmail(email):
     # Creates a variable that represents the standard expression for an email address
     standard_expression = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
-
+    
     # Compares the string to the standard expression for an email address
     return fullmatch(standard_expression, email)
 
@@ -137,9 +137,18 @@ def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
     
     # Compares the passwords
     if password == confirm and funValidatePassword(password) and funValidateEmail(email):
-        # Sends the data to the database, creates a user and goes to authentication
-        Authentication(funCreateUser(type, name, email, password))
+        # Sends the data to the database, creates a user and returns the user
+        user = funCreateUser(type, name, email, password)
+        
+        if user:
+            Authentication(user)
+        else:
+            # Displays that there is too many similar users
+            txtError = Label(bg = "red", text = "Limit on accounts with name and type has been reached. Please contact for support.", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            txtError.after(5000, lambda: AccountDetails(type))
     else:
+        # Displays that the data is invalid
         txtError = Label(bg = "red", text = "Please enter the password and email correctly", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: AccountDetails(type))
@@ -392,7 +401,7 @@ def Authentication(user):
     txtAuth_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
     
     # Creates a label
-    txtAuth_command = Label(bg = Win.cget("bg"), text = "Enter the 4 digit code that has been sent to the email address", font = ("Arial", 16))
+    txtAuth_command = Label(bg = Win.cget("bg"), text = f"Thanks for creating the account! Your ID is {user.user_id}.\n\nEnter the 4 digit code that has been sent to the email address", font = ("Arial", 16))
     txtAuth_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
     # Creates an entry box for the user to enter the password

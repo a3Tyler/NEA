@@ -114,7 +114,7 @@ def funCreateUser(type, name, email, password):
     user_id = funConstructID(type, name)
     
     if not user_id:
-        
+        return False
 
     if user_id[0] == 'T':
         # Checks if there is an existing user
@@ -156,6 +156,8 @@ def funCreateUser(type, name, email, password):
             session.close()
             
             return new_user
+    else:
+        return False
 
 # Function that removes a user from the database
 def funRemoveUser(user_id):
