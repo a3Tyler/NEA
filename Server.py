@@ -6,6 +6,7 @@ from sqlalchemy.orm import *
 from smtplib import *
 from ssl import *
 from email.message import EmailMessage
+from configparser import ConfigParser
 
 # Create an engine and connect to a SQLite database file (search "SQL Online" and go to first link to find database)
 engine = create_engine('sqlite:///testit_user_database.db', echo = False)
@@ -227,11 +228,17 @@ def funClearDatabase():
     
 # Function that sends an email to the email address given
 def funSendCodeviaEmail(email, code):
+    # Retrieves the credentials
+    config = ConfigParser()
+    config.read('config.ini')
+    config_email = config['Credentials']['email']
+    config_password = config['Credentials']['password']
+    
     # Creates an message
     message = EmailMessage()
-    message.set_content(f"Welcome!\n\nThanks for setting up an account with us! Enter the authentication code below so that you can confirm that you are a legitimate user.\n\nYour code is: {code}\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
-    message['Subject'] = "Authentication"
-    message['From'] = "testitauthentication@gmail.com"
+    message.set_content(f"Welcome!\n\nThanks for creating an account with us! Your code is {code}\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
+    message['Subject'] = "Log In success"
+    message['From'] = config_email
     message['To'] = email
 
     # Creates a secure SSL context
@@ -241,7 +248,7 @@ def funSendCodeviaEmail(email, code):
     server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
     
     # Logs in to email
-    server.login("testitauthentication@gmail.com", "hkoz jqpx cttk ccox")
+    server.login(config_email, config_password)
 
     # Sends the message
     server.send_message(message)
@@ -268,11 +275,17 @@ def funAuthenticateUser(user_id):
 
 # Function that sends an email for the log in
 def funSendLogInEmail(email):
+    # Retrieves the credentials
+    config = ConfigParser()
+    config.read('config.ini')
+    config_email = config['Credentials']['email']
+    config_password = config['Credentials']['password']
+    
     # Creates an message
     message = EmailMessage()
     message.set_content(f"Welcome!\n\nYou have now logged into your account! If this wasn't you then please ask for support.\n\nThis is an automated email. There may be issues with the email contents or the email being sent. Please wait for the issues to be resolved.")
     message['Subject'] = "Log In success"
-    message['From'] = "testitauthentication@gmail.com"
+    message['From'] = config_email
     message['To'] = email
 
     # Creates a secure SSL context
@@ -282,7 +295,7 @@ def funSendLogInEmail(email):
     server = SMTP_SSL("smtp.gmail.com", port = 465, context = context)
     
     # Logs in to email
-    server.login("testitauthentication@gmail.com", "hkoz jqpx cttk ccox")
+    server.login(config_email, config_password)
 
     # Sends the message
     server.send_message(message)

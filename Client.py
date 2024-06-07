@@ -5,6 +5,16 @@ from re import *
 from random import *
 from Server import funFindUser, funCreateUser, funSendCodeviaEmail, funAuthenticateUser, funSendLogInEmail
 
+# # # # # USER CLASS # # # # #
+class User():
+    # Defines the attributes
+    def __innit__(self, user_id, email, password, authentication):
+        self.user_id = user_id
+        self.email = email
+        self.password = password
+        self.authentication = authentication
+# # # # # END # # # # #
+
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
 def funClose():
