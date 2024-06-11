@@ -5,16 +5,6 @@ from re import *
 from random import *
 from Server import funFindUser, funCreateUser, funSendCodeviaEmail, funAuthenticateUser, funSendLogInEmail
 
-# # # # # USER CLASS # # # # #
-class User():
-    # Defines the attributes
-    def __innit__(self, user_id, email, password, authentication):
-        self.user_id = user_id
-        self.email = email
-        self.password = password
-        self.authentication = authentication
-# # # # # END # # # # #
-
 # # # # # SUBROUTINES & FUNCTIONS # # # # #
 # Subroutine that closes the window
 def funClose():
@@ -99,32 +89,49 @@ def funLogInCheck(varEmail, varUserID, varPassword):
         txtError.after(5000, lambda: LogIn())
 
 # Function that validates and checks the password
-def funValidatePassword(password):
-    # Checks the password is long enough
-    if len(password) > 6:
-        # Declares variables to track the characters in the password
-        lowercase = False
-        uppercase = False
-        number = False
-        symbol = False
-        
-        # Goes through each character in the password and determines what type of character it is
-        for i in range(0, len(password)):
-            if (32 < ord(password[i]) < 48) or (57 < ord(password[i]) < 65) or (90 < ord(password[i]) < 97) or (122 < ord(password[i]) < 127):
-                symbol = True
-            elif 47 < ord(password[i]) < 58:
-                number = True
-            elif 64 < ord(password[i]) < 91:
-                uppercase = True
-            elif 96 < ord(password[i]) < 123:
-                lowercase = True
+def funValidatePassword(password, confirm):
+    # Checks the passwords match
+    if password == confirm:
+        # Checks the password is long enough
+        if len(password) > 6:
+            # Declares variables to track the characters in the password
+            lowercase = False
+            uppercase = False
+            number = False
+            symbol = False
+
+            # Goes through each character in the password and determines what type of character it is
+            for i in range(0, len(password)):
+                if (32 < ord(password[i]) < 48) or (57 < ord(password[i]) < 65) or (90 < ord(password[i]) < 97) or (122 < ord(password[i]) < 127):
+                    symbol = True
+                elif 47 < ord(password[i]) < 58:
+                    number = True
+                elif 64 < ord(password[i]) < 91:
+                    uppercase = True
+                elif 96 < ord(password[i]) < 123:
+                    lowercase = True
+                else:
+                    return False
+
+            # Checks all requirements are met
+            if symbol and number and uppercase and lowercase:
+                return True
             else:
-                return False
-        
-        # Checks all requirements are met
-        return symbol and number and uppercase and lowercase
+                # Displays that the password is not secure
+                txtError = Label(bg = "red", text = "Password is not secure", font = ("Arial", 24))
+                txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+                txtError.after(5000, lambda: AccountDetails(type))
+        else:
+            # Displays that the password is not secure
+            txtError = Label(bg = "red", text = "Password is not long enough", font = ("Arial", 24))
+            txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            txtError.after(5000, lambda: AccountDetails(type))
+            return False
     else:
-        return False
+        # Displays that the data is invalid
+        txtError = Label(bg = "red", text = "Please reenter the password correctly", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: AccountDetails(type))
 
 # Function that validates and checks the email address
 def funValidateEmail(email):
@@ -132,7 +139,14 @@ def funValidateEmail(email):
     standard_expression = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
     
     # Compares the string to the standard expression for an email address
-    return fullmatch(standard_expression, email)
+    if fullmatch(standard_expression, email):
+        return True
+    else:
+        # Displays that the data is invalid
+        txtError = Label(bg = "red", text = "Please enter the email correctly", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000)
+        return False
 
 # Subroutine that sends the data to the database
 def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
@@ -146,7 +160,7 @@ def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
     funClear()
     
     # Compares the passwords
-    if password == confirm and funValidatePassword(password) and funValidateEmail(email):
+    if funValidatePassword(password, confirm) and funValidateEmail(email):
         # Sends the data to the database, creates a user and returns the user
         user = funCreateUser(type, name, email, password)
         
@@ -157,11 +171,6 @@ def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
             txtError = Label(bg = "red", text = "Limit on accounts with name and type has been reached. Please contact for support.", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
             txtError.after(5000, lambda: AccountDetails(type))
-    else:
-        # Displays that the data is invalid
-        txtError = Label(bg = "red", text = "Please enter the password and email correctly", font = ("Arial", 24))
-        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-        txtError.after(5000, lambda: AccountDetails(type))
 
 # Checks the authentication code
 def funCheckCode(user, varAuth_code, code, attempts):
@@ -177,9 +186,9 @@ def funCheckCode(user, varAuth_code, code, attempts):
         funAuthenticateUser(user.user_id)
         
         # Selects the screen to go to based on the type of account
-        if user.type == "Teacher":
+        if user.user_id[0] == 'T':
             TeacherHub(user)
-        elif user.type == "Student":
+        elif user.user_id[0] == 'S':
             StudentHub(user)
         else:
             # Displays an error if the user doesn't have either type of account
