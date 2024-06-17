@@ -50,9 +50,9 @@ def funLogInCheck(varEmail, varUserID, varPassword):
     # Checks if a user has been found
     if user:
         # Validates the user using the password and email address
-        if funValidateEmail(email):
+        if email == user.email:
             # Checks the details match
-            if password == user.password and email == user.email:
+            if password == user.password:
                 # Checks that the account has been authenticated
                 if user.authentication:
                     # Sends an email confirming the log in
@@ -74,12 +74,12 @@ def funLogInCheck(varEmail, varUserID, varPassword):
                     Authentication(user)
             else:
                 # Displays that the user does not exist
-                txtError = Label(bg = "red", text = "ERROR: user details are incorrect", font = ("Arial", 24))
+                txtError = Label(bg = "red", text = "ERROR: password is incorrect", font = ("Arial", 24))
                 txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
                 txtError.after(5000, lambda: LogIn())
         else:
             # Displays that the user does not exist
-            txtError = Label(bg = "red", text = "ERROR: email is not valid", font = ("Arial", 24))
+            txtError = Label(bg = "red", text = "ERROR: email is incorrect", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
             txtError.after(5000, lambda: LogIn())
     else:
@@ -89,7 +89,7 @@ def funLogInCheck(varEmail, varUserID, varPassword):
         txtError.after(5000, lambda: LogIn())
 
 # Function that validates and checks the password
-def funValidatePassword(password, confirm):
+def funValidatePassword(password, confirm, type):
     # Checks the passwords match
     if password == confirm:
         # Checks the password is long enough
@@ -118,23 +118,23 @@ def funValidatePassword(password, confirm):
                 return True
             else:
                 # Displays that the password is not secure
-                txtError = Label(bg = "red", text = "Password is not secure", font = ("Arial", 24))
+                txtError = Label(bg = "red", text = "ERROR: Password is not secure", font = ("Arial", 24))
                 txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
                 txtError.after(5000, lambda: AccountDetails(type))
         else:
             # Displays that the password is not secure
-            txtError = Label(bg = "red", text = "Password is not long enough", font = ("Arial", 24))
+            txtError = Label(bg = "red", text = "ERROR: Password is not long enough", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
             txtError.after(5000, lambda: AccountDetails(type))
             return False
     else:
         # Displays that the data is invalid
-        txtError = Label(bg = "red", text = "Please reenter the password correctly", font = ("Arial", 24))
+        txtError = Label(bg = "red", text = "ERROR: Please re-enter the password correctly", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
         txtError.after(5000, lambda: AccountDetails(type))
 
 # Function that validates and checks the email address
-def funValidateEmail(email):
+def funValidateEmail(email, type):
     # Creates a variable that represents the standard expression for an email address
     standard_expression = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
     
@@ -143,9 +143,9 @@ def funValidateEmail(email):
         return True
     else:
         # Displays that the data is invalid
-        txtError = Label(bg = "red", text = "Please enter the email correctly", font = ("Arial", 24))
+        txtError = Label(bg = "red", text = "ERROR: Please enter the email correctly", font = ("Arial", 24))
         txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-        txtError.after(5000)
+        txtError.after(5000, lambda: AccountDetails(type))
         return False
 
 # Subroutine that sends the data to the database
@@ -160,17 +160,32 @@ def funSendDetails(type, varEmail, varName, varPassword, varConfirm):
     funClear()
     
     # Compares the passwords
-    if funValidatePassword(password, confirm) and funValidateEmail(email):
+    if funValidatePassword(password, confirm, type) and funValidateEmail(email, type) and name != "Enter full name":
         # Sends the data to the database, creates a user and returns the user
         user = funCreateUser(type, name, email, password)
         
         if user:
-            Authentication(user)
+            code = funGenerateandSendCode(user.email)
+            Authentication(user, code, 0)
         else:
             # Displays that there is too many similar users
-            txtError = Label(bg = "red", text = "Limit on accounts with name and type has been reached. Please contact for support.", font = ("Arial", 24))
+            txtError = Label(bg = "red", text = "ERROR: Limit on accounts with name and type has been reached. Please contact for support.", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
             txtError.after(5000, lambda: AccountDetails(type))
+    elif name == "Enter full name":
+        # Displays that there is too many similar users
+        txtError = Label(bg = "red", text = "ERROR: Invalid name", font = ("Arial", 24))
+        txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        txtError.after(5000, lambda: AccountDetails(type))
+
+# Generates a random code and sends it via email
+def funGenerateandSendCode(email):
+    # Generates a code and sends it via email
+    code = str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9))
+    funSendCodeviaEmail(email, code)
+    
+    # Returns the code
+    return code
 
 # Checks the authentication code
 def funCheckCode(user, varAuth_code, code, attempts):
@@ -201,13 +216,14 @@ def funCheckCode(user, varAuth_code, code, attempts):
         
         # Checks if this is the 3rd time the user has failed
         if attempts % 3 == 0:
-            txtError = Label(bg = "red", text = "Code is invalid. Generating a new code...", font = ("Arial", 24))
+            code = funGenerateandSendCode(user.email)
+            txtError = Label(bg = "red", text = "Code is incorrect. Generating a new code...", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-            txtError.after(5000, lambda: Authentication(user))
+            txtError.after(5000, lambda: Authentication(user, code, attempts))
         else:
-            txtError = Label(bg = "red", text = "Code is invalid", font = ("Arial", 24))
+            txtError = Label(bg = "red", text = "Code is incorrect", font = ("Arial", 24))
             txtError.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-            txtError.after(5000)
+            txtError.after(5000, lambda: Authentication(user, code, attempts))
 # # # # # END # # # # #
 
 # Creates a window and sets it's title and makes it fullscreen
@@ -265,7 +281,7 @@ def LogIn():
     txtLogIn_title.place(relx = 0.5, rely = 0.05, anchor = CENTER)
     
     # Creates a label
-    txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, name and password below", font = ("Arial", 16))
+    txtLogIn_command = Label(bg = Win.cget("bg"), text = "Enter your email, user identification and password below", font = ("Arial", 16))
     txtLogIn_command.place(relx = 0.5, rely = 0.15, anchor = CENTER)
     
     # Creates an entry box for the user to enter the email address
@@ -278,9 +294,9 @@ def LogIn():
     # Creates an entry box for the user to enter the user's name
     etrName = Entry(width = 30, bg = "white", textvariable = name, font = ("Calibri", 16))
     etrName.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-    etrName.insert(0, "Enter full name")
-    etrName.bind('<FocusOut>', lambda x: funSetText(etrName, name, "Enter full name", False))
-    etrName.bind('<FocusIn>', lambda x: funClearText(etrName, name, "Enter full name", False))
+    etrName.insert(0, "Enter user identification")
+    etrName.bind('<FocusOut>', lambda x: funSetText(etrName, name, "Enter user identification", False))
+    etrName.bind('<FocusIn>', lambda x: funClearText(etrName, name, "Enter user identification", False))
     
     # Creates an entry box for the user to enter the password
     etrPassword = Entry(width = 30, bg = "white", textvariable = password, font = ("Calibri", 16))
@@ -404,16 +420,11 @@ def AccountDetails(type):
 # # # # # END # # # # #
 
 # # # # # AUTHENTICATION # # # # #
-def Authentication(user):
+def Authentication(user, code, attempts):
     # Clears the screen
     funClear()
     
-    # Generates a code and sends it via email
-    code = str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9))
-    funSendCodeviaEmail(user.email, code)
-    
     input_code = StringVar()
-    attempts = 0
     
     # Creates a label
     txtAuth_title = Label(bg = Win.cget("bg"), text = "Authenticate your account", font = ("Arial", 30))
