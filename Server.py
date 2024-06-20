@@ -17,8 +17,9 @@ Base = declarative_base()
 # # # # # USER CLASS # # # # #
 class User():
     # Defines the attributes
-    def __init__(self, user_id, email, password, authentication):
+    def __init__(self, user_id, name, email, password, authentication):
         self.user_id = user_id
+        self.name = name
         self.email = email
         self.password = password
         self.authentication = authentication
@@ -31,6 +32,7 @@ class Teacher(Base):
     # Table fields
     id = Column(Integer, primary_key = True)
     user_id = Column(String, unique = True)
+    name = Column(String)
     email = Column(String)
     password = Column(String)
     authentication = Column(Boolean)
@@ -43,6 +45,7 @@ class Student(Base):
     # Table fields
     id = Column(Integer, primary_key = True)
     user_id = Column(String, unique = True)
+    name = Column(String)
     email = Column(String)
     password = Column(String)
     authentication = Column(Boolean)
@@ -160,14 +163,14 @@ def funCreateUser(type, name, email, password):
     
     if user_id[0] == 'T':
         # Creates a new user
-        new_user = Teacher(user_id = user_id, email = email, password = password, authentication = False)
+        new_user = Teacher(user_id = user_id, name = name, email = email, password = password, authentication = False)
 
         # Adds the new user to the database
         session.add(new_user)
         session.commit()
 
         # Creates a version of the user to be used n the client program
-        user = funConstructUser(new_user.user_id, new_user.email, new_user.password, new_user.authentication)
+        user = funConstructUser(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
         
         # Closes the session
         session.close()
@@ -175,14 +178,14 @@ def funCreateUser(type, name, email, password):
         return user
     elif user_id[0] == 'S':
         # Creates a new user
-        new_user = Student(user_id = user_id, email = email, password = password, authentication = False)
+        new_user = Student(user_id = user_id, name = name, email = email, password = password, authentication = False)
 
         # Adds the new user to the database
         session.add(new_user)
         session.commit()
 
         # Creates a version of the user to be used n the client program
-        user = funConstructUser(new_user.user_id, new_user.email, new_user.password, new_user.authentication)
+        user = funConstructUser(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
         
         # Closes the session
         session.close()
