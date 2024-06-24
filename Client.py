@@ -454,6 +454,8 @@ def TeacherHub(user):
     txtHello = Label(bg = "dark blue", relief = SOLID, borderwidth = 3, text = f"Hello {user.name}!")
     txtHello.place(relwidth = 1, relheight = 0.2, relx = 0.5, rely = 0.1, anchor = CENTER)
     
+    # Creates a table
+    
     Win.mainloop()
 # # # # # END # # # # #
 

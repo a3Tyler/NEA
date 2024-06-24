@@ -14,15 +14,22 @@ engine = create_engine('sqlite:///testit_user_database.db', echo = False)
 # Define a base class for declarative class definitions
 Base = declarative_base()
 
+# Create all defined tables
+Base.metadata.create_all(engine)
+
+# Create a session class
+Session = sessionmaker(bind = engine)
+
 # # # # # USER CLASS # # # # #
 class User():
     # Defines the attributes
-    def __init__(self, user_id, name, email, password, authentication):
+    def __init__(self, user_id, name, email, password, authentication, groups):
         self.user_id = user_id
         self.name = name
         self.email = email
         self.password = password
         self.authentication = authentication
+        self.groups = groups
 # # # # # END # # # # #
 
 # # # # # TEACHER TABLE # # # # #
@@ -30,12 +37,13 @@ class Teacher(Base):
     __tablename__ = 'teachers'
     
     # Table fields
-    id = Column(Integer, primary_key = True)
-    user_id = Column(String, unique = True)
-    name = Column(String)
-    email = Column(String)
-    password = Column(String)
-    authentication = Column(Boolean)
+    id : Mapped[int] = mapped_column(primary_key = True)
+    user_id : Mapped[str] = mapped_column(unique = True)
+    name : Mapped[str] = mapped_column()
+    email : Mapped[str] = mapped_column()
+    password : Mapped[str] = mapped_column()
+    authentication : Mapped[str] = mapped_column()
+    groups: Mapped[list["Group"]] = relationship(back_populates = "teachers")
 # # # # # END # # # # #
 
 # # # # # STUDENT TABLE # # # # #
@@ -43,19 +51,24 @@ class Student(Base):
     __tablename__ = 'students'
     
     # Table fields
-    id = Column(Integer, primary_key = True)
-    user_id = Column(String, unique = True)
-    name = Column(String)
-    email = Column(String)
-    password = Column(String)
-    authentication = Column(Boolean)
+    id : Mapped[int] = mapped_column(primary_key = True)
+    user_id : Mapped[str] = mapped_column(unique = True)
+    name : Mapped[str] = mapped_column()
+    email : Mapped[str] = mapped_column()
+    password : Mapped[str] = mapped_column()
+    authentication : Mapped[str] = mapped_column()
+    groups: Mapped[list["Group"]] = relationship(back_populates = "students")
 # # # # # END # # # # #
 
-# Create all defined tables
-Base.metadata.create_all(engine)
-
-# Create a session class
-Session = sessionmaker(bind = engine)
+# # # # # GROUP TABLE # # # # #
+class Group(Base):
+    __tablename__ = 'groups'
+    
+    # Table fields
+    id : Mapped[int] = mapped_column(primary_key = True)
+    teacher : Mapped["Teacher"] = relationship(back_populates = "groups")
+    student : Mapped["Student"] = relationship(back_populates = "groups")
+    Grade : Mapped[str] = mapped_column()
 
 # # # # # FUNCTIONS # # # # #
 # Function that contructs the user id
@@ -105,20 +118,6 @@ def funConstructID(type, name):
     # Outputs the user id
     return user_id
 
-# Function that creates a user that can be used in the client program
-def funConstructUser(user_id, email, password, authentication):
-    # Saves the information onto the device by creating variables
-    offline_user_id = user_id
-    offline_email = email
-    offline_password = password
-    offline_authentication = authentication
-    
-    # Constructs a user that can be accessed by the client program
-    user = User(offline_user_id, offline_email, offline_password, offline_authentication)
-    
-    # Sends it back
-    return user
-
 # Function that finds the user in the database
 def funFindUser(user_id):
     # Creates a session
@@ -126,10 +125,10 @@ def funFindUser(user_id):
     
     if user_id[0] == 'T':
         # Query the teacher table for a user with the given username
-        user = session.query(Teacher).filter_by(user_id = user_id).first()
+        user = session.scalars(select(Teacher).where(Teacher.user_id == user_id)).first()
     elif user_id[0] == 'S':
         # Query the student table for a user with the given username
-        user = session.query(Student).filter_by(user_id = user_id).first()
+        user = session.scalars(select(Student).where(Student.user_id == user_id)).first()
     else:
         # Closes the session
         session.close()
@@ -138,7 +137,7 @@ def funFindUser(user_id):
     
     if user:
         # Creates a version of the user to be used in the client program
-        user = funConstructUser(user.user_id, user.email, user.password, user.authentication)
+        user = User(user.user_id, user.name, user.email, user.password, user.authentication)
         
         # Closes the session
         session.close()
@@ -160,32 +159,23 @@ def funCreateUser(type, name, email, password):
     
     if not user_id:
         return False
-    
-    if user_id[0] == 'T':
-        # Creates a new user
-        new_user = Teacher(user_id = user_id, name = name, email = email, password = password, authentication = False)
-
-        # Adds the new user to the database
-        session.add(new_user)
-        session.commit()
+    elif user_id[0] == 'T':
+        # Creates a new user and adds the new user to the database
+        new_user = session.scalars(insert(Teacher).returning(Teacher), {user_id, name, email, password, False})
 
         # Creates a version of the user to be used n the client program
-        user = funConstructUser(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
+        user = User(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
         
         # Closes the session
         session.close()
         
         return user
     elif user_id[0] == 'S':
-        # Creates a new user
-        new_user = Student(user_id = user_id, name = name, email = email, password = password, authentication = False)
-
-        # Adds the new user to the database
-        session.add(new_user)
-        session.commit()
+        # Creates a new user and adds the new user to the database
+        new_user = session.scalars(insert(Student).returning(Student), {user_id, name, email, password, False})
 
         # Creates a version of the user to be used n the client program
-        user = funConstructUser(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
+        user = User(new_user.user_id, new_user.name, new_user.email, new_user.password, new_user.authentication)
         
         # Closes the session
         session.close()
@@ -198,64 +188,32 @@ def funCreateUser(type, name, email, password):
 def funRemoveUser(user_id):
     # Creates a session
     session = Session()
-
+    
     if user_id[0] == 'T':
-        # Finds the user in the database using the id
-        user = session.query(Teacher).filter_by(user_id = user_id).first()
-    elif user_id[0] == 'S':
-        # Finds the user in the database using the id
-        user = session.query(Teacher).filter_by(user_id = user_id).first()
-    else:
-        # Closes the session
-        session.close()
-        
-        # Outputs the error
-        return None
-
-    # Checks that a user has been found
-    if user:
         # Removes the user from the database
-        session.delete(user)
-        session.commit()
+        try:
+            session.execute(delete(Teacher).where(Teacher.user_id == user_id))
+        except:
+            pass
+    elif user_id[0] == 'S':
+        # Removes the user from the database
+        try:
+            session.execute(delete(Student).where(Student.user_id == user_id))
+        except:
+            pass
 
-        # Closes the session
-        session.close()
-    else:
-        # Closes the session
-        session.close()
-
-        # Outputs the error
-        return None
+    # Closes the session
+    session.close()
 
 # Function that clears the database
 def funClearDatabase():
     # Creates a session
     session = Session()
 
-    # Deletes all users until the database is cleared
-    Cleared = False
-    while not Cleared:
-        try:
-            # Finds the first user from the database
-            user = session.query(Teacher).first()
-
-            # Removes the user from the database
-            session.delete(user)
-            session.commit()
-        except:
-            Cleared = True
-    
-    Cleared = False
-    while not Cleared:
-        try:
-            # Finds the first user from the database
-            user = session.query(Student).first()
-
-            # Removes the user from the database
-            session.delete(user)
-            session.commit()
-        except:
-            Cleared = True
+    # Deletes all data in the database
+    session.execute(delete(Group))
+    session.execute(delete(Teacher))
+    session.execute(delete(Student))
     
     # Closes the session
     session.close()
@@ -295,14 +253,11 @@ def funAuthenticateUser(user_id):
     # Creates a session
     session = Session()
     
-    # Finds the user in the database
-    user = funFindUser(user_id)
-    
     # Updates the user authentication status
-    user.authentication = True
-    
-    # Saves the changes
-    session.commit()
+    if user_id[0] == 'T':
+        session.execute(update(Teacher).where(Teacher.user_id == user_id).values(authentication = True))
+    elif user_id[0] == 'S':
+        session.execute(update(Student).where(Student.user_id == user_id).values(authentication = True))
     
     # Closes the session
     session.close()
